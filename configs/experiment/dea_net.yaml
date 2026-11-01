@@ -1,0 +1,59 @@
+# DEA-Net architecture run, aligned with the original unaugmented baseline run.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    dataset: RESIDE-6K-Outdoor
+    split: train
+    hazy_dir: hazy
+    clear_dir: clear
+  validation:
+    dataset: RESIDE-6K-Outdoor
+    split: val
+    hazy_dir: hazy
+    clear_dir: clear
+  external_test:
+    - dataset: O-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+    - dataset: NH-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+  num_workers: 4
+  pin_memory: true
+
+model:
+  name: dea_net
+  use_depth: false
+  initialization: random
+  base_dim: 32
+
+training:
+  epochs: 50
+  batch_size: 16
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  # The difference-convolution residual stack can exceed FP16 range at init;
+  # use FP32, matching the official DEA-Net training implementation.
+  mixed_precision: false
+  augmentation:
+    horizontal_flip: true
+  early_stopping:
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dea_net_fp32_archfix

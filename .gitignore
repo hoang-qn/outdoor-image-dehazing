@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Editors and local environments
+.ipynb_checkpoints/
+.env
+.idea/
+.vscode/
+
+# Datasets, generated data, training runs, and model weights
+data/**
+!data/**/
+!data/README.md
+!data/**/README.md
+runs/
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Local cache, scratch files, exploratory notebooks, and reports
+.gradio/
+tmp/
+images_test/
+main.pdf
+/notebooks/
+/report/
+/papers/
+/docs/presentations/
+
+# Logs and operating-system files
+*.log
+*.pid
+Thumbs.db
+.DS_Store
+/results/presentation_o_nh_haze/

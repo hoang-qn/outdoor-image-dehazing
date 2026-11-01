@@ -1,0 +1,70 @@
+# M3: M2 plus a fixed-Haar high-frequency detail branch at the decoder.
+# Full 50-epoch run on the same concatenated training split as the pilot.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: train
+      - dataset: NH-HAZE2
+        split: train
+      - dataset: HD-NH-HAZE
+        split: train
+  validation:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: val
+      - dataset: NH-HAZE2
+        split: val
+      - dataset: HD-NH-HAZE
+        split: val
+  external_test:
+    - dataset: RESIDE-6K-Outdoor
+      split: test
+    - dataset: O-HAZE
+    - dataset: NH-HAZE
+  num_workers: 0
+  validation_num_workers: 0
+  validation_tile_size: 512
+  validation_tile_overlap: 64
+  pin_memory: true
+
+model:
+  name: dehazeformer_t_m3
+  initialization: random
+
+training:
+  epochs: 50
+  batch_size: 8
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  loss:
+    type: l1
+  sampling:
+    strategy: shuffle
+  haze_aux_weight: 0.05
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: false
+  early_stopping:
+    patience: 0
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t_m3_full50

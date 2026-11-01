@@ -1,0 +1,75 @@
+# 12-epoch DehazeFormer-T pilot using the domain-balanced sampler from the notebook.
+# Each batch is 50% RESIDE, 25% NH-HAZE2, and 25% HD-NH-HAZE.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: train
+      - dataset: NH-HAZE2
+        split: train
+      - dataset: HD-NH-HAZE
+        split: train
+  validation:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: val
+      - dataset: NH-HAZE2
+        split: val
+      - dataset: HD-NH-HAZE
+        split: val
+  # Test sets are held out until the selected model is evaluated.
+  external_test:
+    - dataset: RESIDE-6K-Outdoor
+      split: test
+    - dataset: O-HAZE
+    - dataset: NH-HAZE
+  num_workers: 0
+  validation_num_workers: 0
+  validation_tile_size: 512
+  validation_tile_overlap: 64
+  pin_memory: true
+
+model:
+  name: dehazeformer_t
+  initialization: random
+
+training:
+  epochs: 12
+  batch_size: 8
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  sampling:
+    strategy: domain_balanced
+    # Counts follow data.train.datasets order; this is 50% / 25% / 25% for batch size 8.
+    samples_per_batch:
+      RESIDE-6K-Outdoor: 4
+      NH-HAZE2: 2
+      HD-NH-HAZE: 2
+    # Null uses ceil(RESIDE_train_pairs / 4), matching the notebook's default epoch length.
+    steps_per_epoch: null
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: false
+  early_stopping:
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t_reside_nhhaze2_hdnhhaze_balanced_pilot12

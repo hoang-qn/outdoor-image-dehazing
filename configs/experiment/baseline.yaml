@@ -1,0 +1,60 @@
+# Reproducible baseline settings for the first DehazeFormer-T experiment.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    dataset: RESIDE-6K-Outdoor
+    split: train
+    hazy_dir: hazy
+    clear_dir: clear
+  validation:
+    dataset: RESIDE-6K-Outdoor
+    split: val
+    hazy_dir: hazy
+    clear_dir: clear
+  external_test:
+    - dataset: O-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+    - dataset: NH-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+  # Never select checkpoints using test or external_test metrics.
+  num_workers: 4
+  pin_memory: true
+
+model:
+  name: dehazeformer_t
+  initialization: random
+
+training:
+  epochs: 50
+  batch_size: 16
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  augmentation:
+    white_haze_density:
+      enabled: true
+      offline_manifest: data/RESIDE-6K-Outdoor/augmentations/white_haze_density/pairs.csv
+      opacity_levels: [0.10, 0.20, 0.30, 0.40, 0.50]
+  early_stopping:
+    # Keep the checkpoint-selection metric and stopping criterion aligned.
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t

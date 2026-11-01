@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "outdoor-image-dehazing"
+version = "0.1.0"
+description = "Research scaffold for outdoor single-image dehazing"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.2",
+  "numpy>=1.24",
+  "Pillow>=10.0",
+  "PyYAML>=6.0",
+  "tqdm>=4.66",
+  "tensorboard>=2.14",
+  "scikit-image>=0.22",
+  "fvcore>=0.1.5.post20221221",
+]
+
+[project.optional-dependencies]
+depth = ["torchvision", "timm", "opencv-python-headless"]
+perceptual = ["lpips>=0.1.4"]
+demo = ["gradio>=6.0", "qrcode[pil]>=7.4"]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

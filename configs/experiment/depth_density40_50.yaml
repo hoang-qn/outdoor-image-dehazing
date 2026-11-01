@@ -1,0 +1,66 @@
+# Depth-conditioned DehazeFormer-T trained with original RESIDE pairs plus
+# two offline white-haze density variants (40% and 50%).
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  depth_root: data/depth_maps
+  train:
+    dataset: RESIDE-6K-Outdoor
+    split: train
+    hazy_dir: hazy
+    clear_dir: clear
+  validation:
+    dataset: RESIDE-6K-Outdoor
+    split: val
+    hazy_dir: hazy
+    clear_dir: clear
+  external_test:
+    - dataset: O-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+    - dataset: NH-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+  num_workers: 4
+  pin_memory: true
+
+model:
+  name: dehazeformer_t_depth_density40_50
+  use_depth: true
+  depth_estimator: MiDaS_small
+  initialization: baseline_checkpoint
+  init_checkpoint: runs/dehazeformer_t/checkpoints/best.pth
+
+training:
+  epochs: 50
+  batch_size: 16
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: true
+      offline_manifest: data/RESIDE-6K-Outdoor/augmentations/white_haze_density/pairs_level_40_50.csv
+      opacity_levels: [0.40, 0.50]
+    spatial_haze:
+      enabled: false
+  early_stopping:
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t_depth_density40_50

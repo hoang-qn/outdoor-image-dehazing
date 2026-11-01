@@ -1,0 +1,2 @@
+# Core package plus Gradio demo, depth-map generation, and LPIPS support.
+-e .[demo,depth,perceptual]

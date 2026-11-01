@@ -1,0 +1,76 @@
+# SLRNet, trained for 50 epochs on the same RESIDE + NH-HAZE2 + HD-NH-HAZE split.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  image_cache_root: data/training_cache/m6_mcbm
+  train:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: train
+      - dataset: NH-HAZE2
+        split: train
+      - dataset: HD-NH-HAZE
+        split: train
+  validation:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: val
+      - dataset: NH-HAZE2
+        split: val
+      - dataset: HD-NH-HAZE
+        split: val
+  external_test:
+    - dataset: RESIDE-6K-Outdoor
+      split: test
+    - dataset: O-HAZE
+    - dataset: NH-HAZE
+  num_workers: 4
+  prefetch_factor: 2
+  validation_num_workers: 0
+  validation_tile_size: 512
+  validation_tile_overlap: 64
+  pin_memory: true
+
+model:
+  name: slrnet
+  base_dim: 32
+  initialization: random
+
+training:
+  epochs: 50
+  batch_size: 8
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  fused_optimizer: true
+  cpu_threads: 4
+  deterministic: false
+  scheduler: cosine
+  mixed_precision: true
+  progress_interval: 20
+  log_timing: true
+  loss:
+    type: l1
+  sampling:
+    strategy: shuffle
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: false
+  early_stopping:
+    patience: 0
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: slrnet_recent_full50

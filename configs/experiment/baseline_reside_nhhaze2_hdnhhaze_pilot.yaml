@@ -1,0 +1,66 @@
+# 12-epoch pilot for model screening on the complete RESIDE + NH-HAZE2 + HD-NH-HAZE train split.
+# Keep the same train/validation data and optimizer settings as the 50-epoch baseline.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: train
+      - dataset: NH-HAZE2
+        split: train
+      - dataset: HD-NH-HAZE
+        split: train
+  validation:
+    datasets:
+      - dataset: RESIDE-6K-Outdoor
+        split: val
+      - dataset: NH-HAZE2
+        split: val
+      - dataset: HD-NH-HAZE
+        split: val
+  # Test sets are reserved for final evaluation after selecting a model.
+  external_test:
+    - dataset: RESIDE-6K-Outdoor
+      split: test
+    - dataset: O-HAZE
+    - dataset: NH-HAZE
+  num_workers: 0
+  validation_num_workers: 0
+  validation_tile_size: 512
+  validation_tile_overlap: 64
+  pin_memory: true
+
+model:
+  name: dehazeformer_t
+  initialization: random
+
+training:
+  epochs: 12
+  batch_size: 8
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: false
+  early_stopping:
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t_reside_nhhaze2_hdnhhaze_pilot12

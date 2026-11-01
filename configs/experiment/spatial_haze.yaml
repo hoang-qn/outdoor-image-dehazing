@@ -1,0 +1,65 @@
+# RESIDE-only training experiment with on-the-fly smooth spatial haze augmentation.
+project: outdoor-image-dehazing
+seed: 42
+
+data:
+  root: data
+  train:
+    dataset: RESIDE-6K-Outdoor
+    split: train
+    hazy_dir: hazy
+    clear_dir: clear
+  validation:
+    dataset: RESIDE-6K-Outdoor
+    split: val
+    hazy_dir: hazy
+    clear_dir: clear
+  external_test:
+    - dataset: O-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+    - dataset: NH-HAZE
+      hazy_dir: hazy
+      clear_dir: clear
+  num_workers: 4
+  pin_memory: true
+
+model:
+  name: dehazeformer_t
+  initialization: random
+
+training:
+  epochs: 50
+  batch_size: 16
+  crop_size: 256
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  scheduler: cosine
+  mixed_precision: true
+  augmentation:
+    horizontal_flip: true
+    white_haze_density:
+      enabled: false
+    spatial_haze:
+      enabled: true
+      probability: 0.75
+      opacity_range: [0.08, 0.28]
+      spatial_strength: 0.6
+      max_opacity: 0.45
+      grid_size: [3, 7]
+      airlight_range: [0.78, 1.0]
+  early_stopping:
+    patience: 5
+
+evaluation:
+  metrics: [L1, PSNR, SSIM]
+  image_range: [0, 1]
+  ssim_window_size: 11
+  gflops_reference_size: 256
+  crop_border: 0
+  save_visual_comparisons: true
+
+output:
+  root: runs
+  experiment_name: dehazeformer_t_spatial_haze
